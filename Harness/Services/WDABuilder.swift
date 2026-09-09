@@ -100,6 +100,21 @@ actor WDABuilder: WDABuilding {
         self.sourceURL = sourceURL
     }
 
+    /// The vendored WDA project still declares iOS 13.0. Xcode 27 dropped
+    /// support for simulator deployment targets below iOS 15, so keep the
+    /// compatibility override at Harness's build boundary instead of
+    /// modifying the third-party submodule.
+    static func wdaBuildSettings() -> [String] {
+        [
+            "CODE_SIGN_IDENTITY=-",
+            "CODE_SIGNING_REQUIRED=YES",
+            "CODE_SIGNING_ALLOWED=YES",
+            "CODE_SIGN_STYLE=Manual",
+            "DEVELOPMENT_TEAM=",
+            "IPHONEOS_DEPLOYMENT_TARGET=15.0"
+        ]
+    }
+
     // MARK: ensureBuilt
 
     func ensureBuilt(forSimulator ref: SimulatorRef) async throws -> WDABuildResult {
@@ -143,14 +158,7 @@ actor WDABuilder: WDABuilding {
             "-destination", "id=\(ref.udid)",
             "-derivedDataPath", derivedData.path,
             "-configuration", "Debug",
-            // Ad-hoc sign (matches XcodeBuilder; lets the test bundle load
-            // its entitlements without a real Apple Developer team).
-            "CODE_SIGN_IDENTITY=-",
-            "CODE_SIGNING_REQUIRED=YES",
-            "CODE_SIGNING_ALLOWED=YES",
-            "CODE_SIGN_STYLE=Manual",
-            "DEVELOPMENT_TEAM="
-        ]
+        ] + Self.wdaBuildSettings()
 
         let spec = ProcessSpec(
             executable: xcodebuild,

@@ -47,6 +47,18 @@ struct WDABuilderVersionKeyTests {
     }
 }
 
+@Suite("WDABuilder — Xcode compatibility")
+struct WDABuilderBuildSettingsTests {
+
+    @Test("Overrides the vendored WDA deployment target for current Xcode")
+    func deploymentTargetOverride() {
+        let settings = WDABuilder.wdaBuildSettings()
+
+        #expect(settings.contains("IPHONEOS_DEPLOYMENT_TARGET=15.0"))
+        #expect(!settings.contains("IPHONEOS_DEPLOYMENT_TARGET=13.0"))
+    }
+}
+
 @Suite("WDABuilder — xctestrun discovery")
 struct WDABuilderXCTestRunDiscoveryTests {
 
